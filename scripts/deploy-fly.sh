@@ -5,7 +5,7 @@
 set -euo pipefail
 
 REPO_URL="https://github.com/gentle-gently-gentlish/ghostclip.git"
-REGION="den"
+REGION="dfw"
 VOLUME="ghostcut_data"
 
 cd "$(dirname "$0")/.."

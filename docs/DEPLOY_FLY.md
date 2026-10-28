@@ -37,7 +37,7 @@ From the repo root:
 
 ```bash
 # Pick a unique app name and a region near you (den, iad, sjc, …)
-fly launch --no-deploy --copy-config --name ghostcut-YOURNAME --region den
+fly launch --no-deploy --copy-config --name ghostcut-YOURNAME --region dfw
 ```
 
 If `fly.toml` already has `app = "…"`, you can use:
@@ -52,7 +52,7 @@ fly apps create ghostcut-YOURNAME
 SQLite, OAuth tokens, and queued videos live on disk:
 
 ```bash
-fly volumes create ghostcut_data --region den --size 3
+fly volumes create ghostcut_data --region dfw --size 3
 ```
 
 `fly.toml` already mounts it at `/data`.

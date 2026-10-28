@@ -10,7 +10,7 @@
 # Custom domain: fly certs add ghostcut.yourdomain.com
 
 app = "ghostcut-jacque"
-primary_region = "den"
+primary_region = "dfw"
 
 [build]
 
