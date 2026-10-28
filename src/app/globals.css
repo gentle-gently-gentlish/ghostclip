@@ -1,0 +1,159 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-display);
+  --font-display: var(--font-display);
+  --color-ink: var(--ink);
+  --color-clay: var(--clay);
+  --color-mist: var(--mist);
+  --color-signal: var(--signal);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  --ink: #14110f;
+  --clay: #1c1814;
+  --mist: #f3eee6;
+  --signal: #c4f082;
+  --background: #14110f;
+  --foreground: #f3eee6;
+  --card: #1c1814;
+  --card-foreground: #f3eee6;
+  --popover: #1c1814;
+  --popover-foreground: #f3eee6;
+  --primary: #c4f082;
+  --primary-foreground: #14110f;
+  --secondary: #2a241c;
+  --secondary-foreground: #f3eee6;
+  --muted: #2a241c;
+  --muted-foreground: #a89f93;
+  --accent: #2a241c;
+  --accent-foreground: #f3eee6;
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: rgb(243 238 230 / 12%);
+  --input: rgb(243 238 230 / 14%);
+  --ring: #c4f082;
+  --chart-1: #c4f082;
+  --chart-2: #a89f93;
+  --chart-3: #2a241c;
+  --chart-4: #f3eee6;
+  --chart-5: #14110f;
+  --radius: 0.75rem;
+  --sidebar: #1c1814;
+  --sidebar-foreground: #f3eee6;
+  --sidebar-primary: #c4f082;
+  --sidebar-primary-foreground: #14110f;
+  --sidebar-accent: #2a241c;
+  --sidebar-accent-foreground: #f3eee6;
+  --sidebar-border: rgb(243 238 230 / 12%);
+  --sidebar-ring: #c4f082;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans scroll-smooth;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+  }
+
+  .soft-grid {
+    background-image:
+      radial-gradient(ellipse 70% 45% at 50% -15%, rgba(196, 240, 130, 0.14), transparent),
+      radial-gradient(ellipse 50% 35% at 100% 10%, rgba(180, 140, 100, 0.12), transparent),
+      linear-gradient(rgba(243, 238, 230, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(243, 238, 230, 0.03) 1px, transparent 1px);
+    background-size: auto, auto, 52px 52px, 52px 52px;
+  }
+
+  .hero-rise {
+    animation: hero-rise 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .hero-rise-delay {
+    animation: hero-rise 1000ms cubic-bezier(0.22, 1, 0.36, 1) 120ms both;
+  }
+
+  .hero-rise-delay-2 {
+    animation: hero-rise 1100ms cubic-bezier(0.22, 1, 0.36, 1) 220ms both;
+  }
+
+  .agent-pulse {
+    animation: agent-pulse 1.6s ease-in-out infinite;
+  }
+}
+
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes agent-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(196, 240, 130, 0.35);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 14px rgba(196, 240, 130, 0);
+    transform: scale(1.04);
+  }
+}
