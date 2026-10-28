@@ -9,6 +9,9 @@ REGION="den"
 VOLUME="ghostcut_data"
 
 cd "$(dirname "$0")/.."
+# Keep a copy of everything this script prints in deploy.log (for troubleshooting)
+exec > >(tee -a deploy.log) 2>&1
+echo "----- $(date) -----"
 say() { printf "\n\033[1;32m==> %s\033[0m\n" "$*"; }
 warn() { printf "\n\033[1;33m!!  %s\033[0m\n" "$*"; }
 

@@ -9,7 +9,7 @@
 # Optional later: fly secrets set FAL_KEY=...
 # Custom domain: fly certs add ghostcut.yourdomain.com
 
-app = "ghostcut-gentle"
+app = "ghostcut-jacque"
 primary_region = "den"
 
 [build]
