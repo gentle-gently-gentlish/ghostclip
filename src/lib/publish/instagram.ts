@@ -24,10 +24,18 @@ export function instagramAuthUrl(state: string) {
   const params = new URLSearchParams({
     client_id: appId,
     redirect_uri: `${getAppUrl()}/api/oauth/instagram/callback`,
-    scope: SCOPES,
     response_type: "code",
     state,
   });
+  // Newer Meta apps use "Facebook Login for Business", which takes a
+  // configuration ID (created in the app dashboard) instead of a scope list.
+  const configId = process.env.META_CONFIG_ID?.trim();
+  if (configId) {
+    params.set("config_id", configId);
+    params.set("override_default_response_type", "true");
+  } else {
+    params.set("scope", SCOPES);
+  }
   return `${FB_AUTH}?${params.toString()}`;
 }
 
@@ -58,34 +66,51 @@ export async function exchangeInstagramCode(code: string): Promise<PlatformConne
   llUrl.searchParams.set("client_secret", appSecret);
   llUrl.searchParams.set("fb_exchange_token", short.access_token);
   const llRes = await fetch(llUrl);
-  if (!llRes.ok) {
-    throw new Error(`Instagram long-lived token failed: ${await llRes.text()}`);
-  }
-  const longLived = (await llRes.json()) as {
-    access_token: string;
-    expires_in?: number;
-  };
+  // Business-login tokens may already be long-lived / non-exchangeable —
+  // fall back to the token we have instead of failing the connection.
+  const longLived = llRes.ok
+    ? ((await llRes.json()) as { access_token: string; expires_in?: number })
+    : short;
 
   // Find Page → linked IG business account
-  const pagesRes = await fetch(
-    `${GRAPH}/me/accounts?fields=id,name,access_token,instagram_business_account{id,username}&access_token=${longLived.access_token}`,
-  );
-  if (!pagesRes.ok) {
-    throw new Error(`Could not list Facebook Pages: ${await pagesRes.text()}`);
-  }
-  const pages = (await pagesRes.json()) as {
-    data?: {
-      id: string;
-      name: string;
-      access_token: string;
-      instagram_business_account?: { id: string; username?: string };
-    }[];
+  type PageRow = {
+    id: string;
+    name: string;
+    access_token?: string;
+    instagram_business_account?: { id: string; username?: string };
+  };
+  const PAGE_FIELDS =
+    "id,name,access_token,instagram_business_account{id,username}";
+  const token = longLived.access_token;
+  const graphList = async (pathAndQuery: string): Promise<PageRow[]> => {
+    const sep = pathAndQuery.includes("?") ? "&" : "?";
+    const r = await fetch(`${GRAPH}/${pathAndQuery}${sep}access_token=${token}`);
+    if (!r.ok) return [];
+    const j = (await r.json()) as { data?: PageRow[] };
+    return j.data ?? [];
   };
 
-  const page = pages.data?.find((p) => p.instagram_business_account?.id);
+  let page: PageRow | undefined = (
+    await graphList(`me/accounts?fields=${PAGE_FIELDS}`)
+  ).find((p) => p.instagram_business_account?.id);
+
+  // Business-login (system-user) tokens: look through the user's businesses
+  if (!page) {
+    const businesses = await graphList("me/businesses?fields=id");
+    for (const b of businesses) {
+      for (const edge of ["owned_pages", "client_pages"]) {
+        page = (await graphList(`${b.id}/${edge}?fields=${PAGE_FIELDS}`)).find(
+          (p) => p.instagram_business_account?.id,
+        );
+        if (page) break;
+      }
+      if (page) break;
+    }
+  }
+
   if (!page?.instagram_business_account) {
     throw new Error(
-      "No Instagram Business/Creator account linked to a Facebook Page. Link IG in Meta Business Suite, then reconnect.",
+      "No Instagram Business/Creator account linked to a Facebook Page was found for this login. Make sure the Page and Instagram account were selected on Meta's permission screen, then reconnect.",
     );
   }
 
@@ -97,7 +122,7 @@ export async function exchangeInstagramCode(code: string): Promise<PlatformConne
     pageId: page.id,
     igUserId: page.instagram_business_account.id,
     connectedAt: new Date().toISOString(),
-    accessToken: page.access_token,
+    accessToken: page.access_token || token,
     expiresAt: longLived.expires_in
       ? Date.now() + longLived.expires_in * 1000
       : undefined,

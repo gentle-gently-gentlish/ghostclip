@@ -4,6 +4,9 @@ import type { Clip } from "@/lib/clips";
 
 const MODEL = "fal-ai/kling-video/v3/standard/text-to-video";
 const QUEUE = "https://queue.fal.run";
+// fal's queue status/result endpoints live under the base app id
+// ("fal-ai/kling-video"), not the full model path used for submitting.
+const APP_ID = MODEL.split("/").slice(0, 2).join("/");
 
 export function hasKlingKey() {
   return Boolean(getFalKey());
@@ -71,13 +74,13 @@ export type KlingStatus =
 
 export async function getKlingStatus(requestId: string): Promise<KlingStatus> {
   const statusRes = await fetch(
-    `${QUEUE}/${MODEL}/requests/${requestId}/status?logs=0`,
+    `${QUEUE}/${APP_ID}/requests/${requestId}/status?logs=0`,
     { headers: authHeaders() },
   );
 
   if (!statusRes.ok) {
     const text = await statusRes.text();
-    throw new Error(`Kling status failed: ${text.slice(0, 300)}`);
+    throw new Error(`Kling status failed (HTTP ${statusRes.status}): ${text.slice(0, 300) || statusRes.statusText}`);
   }
 
   const statusData = (await statusRes.json()) as {
@@ -99,12 +102,12 @@ export async function getKlingStatus(requestId: string): Promise<KlingStatus> {
     };
   }
 
-  const resultRes = await fetch(`${QUEUE}/${MODEL}/requests/${requestId}`, {
+  const resultRes = await fetch(`${QUEUE}/${APP_ID}/requests/${requestId}`, {
     headers: authHeaders(),
   });
   if (!resultRes.ok) {
     const text = await resultRes.text();
-    throw new Error(`Kling result failed: ${text.slice(0, 300)}`);
+    throw new Error(`Kling result failed (HTTP ${resultRes.status}): ${text.slice(0, 300) || resultRes.statusText}`);
   }
 
   const result = (await resultRes.json()) as {
