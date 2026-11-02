@@ -166,7 +166,7 @@ function migrateFromJson(db: DatabaseSync) {
         youtube?: PlatformConnection;
         instagram?: PlatformConnection;
       };
-      for (const platform of ["youtube", "instagram"] as Platform[]) {
+      for (const platform of ["youtube", "instagram"] as const) {
         const c = all[platform];
         if (!c) continue;
         const row = db
@@ -390,6 +390,7 @@ function rowToConnection(row: {
 export function dbGetConnections(): {
   youtube?: PlatformConnection;
   instagram?: PlatformConnection;
+  facebook?: PlatformConnection;
 } {
   const rows = getDb()
     .prepare(`SELECT * FROM connections`)
@@ -406,12 +407,16 @@ export function dbGetConnections(): {
     page_id: string | null;
     ig_user_id: string | null;
   }[];
-  const out: { youtube?: PlatformConnection; instagram?: PlatformConnection } =
-    {};
+  const out: {
+    youtube?: PlatformConnection;
+    instagram?: PlatformConnection;
+    facebook?: PlatformConnection;
+  } = {};
   for (const row of rows) {
     const c = rowToConnection(row);
     if (c.platform === "youtube") out.youtube = c;
     if (c.platform === "instagram") out.instagram = c;
+    if (c.platform === "facebook") out.facebook = c;
   }
   return out;
 }
@@ -497,13 +502,18 @@ function rowToQueueItem(row: {
   platforms_json: string;
   publish_results_json: string | null;
 }): QueueItem {
+  // Per-item publish options ride inside clip_json (no schema migration).
+  const { _ghostcutPublish: opts, ...clip } = JSON.parse(row.clip_json) as QueueItem["clip"] & {
+    _ghostcutPublish?: { youtubePrivacy?: QueueItem["youtubePrivacy"] };
+  };
   return {
     id: row.id,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     status: row.status as QueueItem["status"],
     channelName: row.channel_name,
-    clip: JSON.parse(row.clip_json),
+    clip,
+    youtubePrivacy: opts?.youtubePrivacy,
     filename: row.filename,
     videoPath: row.video_path,
     engine: row.engine || undefined,
@@ -585,7 +595,11 @@ export function dbUpsertQueueItem(item: QueueItem) {
       item.updatedAt,
       item.status,
       item.channelName,
-      JSON.stringify(item.clip),
+      JSON.stringify(
+        item.youtubePrivacy
+          ? { ...item.clip, _ghostcutPublish: { youtubePrivacy: item.youtubePrivacy } }
+          : item.clip,
+      ),
       item.filename,
       item.videoPath,
       item.engine ?? null,

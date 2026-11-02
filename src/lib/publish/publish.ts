@@ -8,6 +8,7 @@ import {
 } from "./store";
 import { publishInstagramReel } from "./instagram";
 import { publishYoutubeShort } from "./youtube";
+import { publishFacebookReel } from "./facebook";
 import type { Platform, PublishResult, QueueItem } from "./types";
 
 export async function publishApprovedItem(
@@ -54,6 +55,7 @@ export async function publishApprovedItem(
           await publishYoutubeShort({
             clip: item.clip,
             video,
+            privacyStatus: item.youtubePrivacy,
           }),
         );
       } catch (e) {
@@ -94,6 +96,25 @@ export async function publishApprovedItem(
         ok: false,
         mode: "skipped",
         error: "Instagram not connected — connect in Publish hub first",
+        at: new Date().toISOString(),
+      });
+    }
+  }
+
+  if (targets.includes("facebook")) {
+    if (conns.facebook?.status && conns.facebook.status !== "disconnected") {
+      try {
+        results.push(await publishFacebookReel({ clip: item.clip, video }));
+      } catch (e) {
+        results.push(fail("facebook", e));
+      }
+    } else {
+      results.push({
+        platform: "facebook",
+        ok: false,
+        mode: "skipped",
+        error:
+          "Facebook Page not connected — reconnect the Meta (Instagram) login with Page posting allowed",
         at: new Date().toISOString(),
       });
     }

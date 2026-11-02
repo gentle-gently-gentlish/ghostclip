@@ -67,7 +67,7 @@ export function PublishHub() {
     }
   }, [refresh]);
 
-  async function demoConnect(platform: "youtube" | "instagram") {
+  async function demoConnect(platform: "youtube" | "instagram" | "facebook") {
     await fetch("/api/connections", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -76,7 +76,7 @@ export function PublishHub() {
     await refresh();
   }
 
-  async function disconnect(platform: "youtube" | "instagram") {
+  async function disconnect(platform: "youtube" | "instagram" | "facebook") {
     await fetch("/api/connections", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -174,8 +174,8 @@ export function PublishHub() {
         </ol>
 
         {/* Connections */}
-        <div className="grid gap-4 md:grid-cols-2">
-          {(["youtube", "instagram"] as const).map((platform) => {
+        <div className="grid gap-4 md:grid-cols-3">
+          {(["youtube", "instagram", "facebook"] as const).map((platform) => {
             const c = connections?.[platform];
             const live = c?.liveConfigured;
             const connected = c?.status === "connected" || c?.status === "demo";
@@ -193,7 +193,11 @@ export function PublishHub() {
                     )}
                     <div>
                       <p className="font-display text-mist capitalize">
-                        {platform === "youtube" ? "YouTube Shorts" : "Instagram Reels"}
+                        {platform === "youtube"
+                          ? "YouTube Shorts"
+                          : platform === "instagram"
+                            ? "Instagram Reels"
+                            : "Facebook Page Reels"}
                       </p>
                       <p className="text-xs text-mist/45">
                         {connected
@@ -210,11 +214,18 @@ export function PublishHub() {
                 <div className="mt-4 flex flex-wrap gap-2">
                   {live ? (
                     <a
-                      href={`/api/oauth/${platform}/start`}
+                      href={`/api/oauth/${platform === "facebook" ? "instagram" : platform}/start`}
+                      title={platform === "facebook" ? "Facebook uses the same Meta login as Instagram" : undefined}
                       className="inline-flex h-9 items-center gap-2 rounded-lg bg-signal px-3 text-sm font-medium text-ink hover:bg-signal/90"
                     >
                       <ShieldCheck className="size-4" />
-                      {connected ? "Reconnect" : "Connect with OAuth"}
+                      {platform === "facebook"
+                        ? connected
+                          ? "Reconnect Meta login"
+                          : "Connect via Meta login"
+                        : connected
+                          ? "Reconnect"
+                          : "Connect with OAuth"}
                     </a>
                   ) : (
                     <Button

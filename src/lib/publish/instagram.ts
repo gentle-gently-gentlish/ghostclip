@@ -7,6 +7,7 @@ import {
 } from "./store";
 import type { Clip } from "@/lib/clips";
 import type { PlatformConnection, PublishResult } from "./types";
+import { saveFacebookPageFromMetaLogin } from "./facebook";
 
 const GRAPH = "https://graph.facebook.com/v21.0";
 const FB_AUTH = "https://www.facebook.com/v21.0/dialog/oauth";
@@ -17,6 +18,8 @@ const SCOPES = [
   "pages_show_list",
   "pages_read_engagement",
   "business_management",
+  // Facebook Page Reels (same Meta login; owner-approved 2026-11-02)
+  "pages_manage_posts",
 ].join(",");
 
 export function instagramAuthUrl(state: string) {
@@ -128,6 +131,12 @@ export async function exchangeInstagramCode(code: string): Promise<PlatformConne
       : undefined,
   };
   saveConnection(conn);
+
+  // Same login, same Page: also enable Facebook Page publishing when the
+  // login granted pages_manage_posts. Never fails the Instagram connection.
+  const fb = await saveFacebookPageFromMetaLogin(page, token, conn.expiresAt);
+  if (!fb.saved) console.warn(`[ghostcut] Facebook Page not connected: ${fb.reason}`);
+
   return conn;
 }
 

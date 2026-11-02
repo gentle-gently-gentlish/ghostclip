@@ -11,7 +11,8 @@ import {
 } from "@/lib/publish/store";
 import { connectInstagramDemo } from "@/lib/publish/instagram";
 import { connectYoutubeDemo } from "@/lib/publish/youtube";
-import type { ConnectionsPublic, Platform } from "@/lib/publish/types";
+import { connectFacebookDemo } from "@/lib/publish/facebook";
+import { PLATFORMS, type ConnectionsPublic, type Platform } from "@/lib/publish/types";
 
 export async function GET() {
   await connection();
@@ -29,6 +30,12 @@ export async function GET() {
       connectedAt: all.instagram?.connectedAt,
       liveConfigured: instagramLiveConfigured(),
     },
+    facebook: {
+      status: all.facebook?.status || "disconnected",
+      accountLabel: all.facebook?.accountLabel,
+      connectedAt: all.facebook?.connectedAt,
+      liveConfigured: instagramLiveConfigured(),
+    },
     appUrl: getAppUrl(),
     redirectUris: getOAuthRedirectUris(),
     publicMediaConfigured: publicMediaBaseConfigured(),
@@ -43,7 +50,7 @@ export async function POST(request: Request) {
     platform?: Platform;
   };
 
-  if (!body.platform || !["youtube", "instagram"].includes(body.platform)) {
+  if (!body.platform || !PLATFORMS.includes(body.platform)) {
     return NextResponse.json({ error: "platform required" }, { status: 400 });
   }
 
@@ -54,6 +61,7 @@ export async function POST(request: Request) {
 
   if (body.action === "demo-connect") {
     if (body.platform === "youtube") connectYoutubeDemo();
+    else if (body.platform === "facebook") connectFacebookDemo();
     else connectInstagramDemo();
     return NextResponse.json({ ok: true, mode: "demo" });
   }

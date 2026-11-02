@@ -1,6 +1,10 @@
 import type { Clip } from "@/lib/clips";
 
-export type Platform = "youtube" | "instagram";
+export type Platform = "youtube" | "instagram" | "facebook";
+
+export const PLATFORMS: Platform[] = ["youtube", "instagram", "facebook"];
+
+export type YoutubePrivacy = "public" | "unlisted" | "private";
 
 export type ConnectionStatus = "disconnected" | "connected" | "demo";
 
@@ -16,7 +20,7 @@ export type PlatformConnection = {
   accessToken?: string;
   refreshToken?: string;
   expiresAt?: number;
-  /** Instagram Graph needs a Page + IG user id */
+  /** Instagram Graph needs a Page + IG user id; Facebook stores the Page id + Page token */
   pageId?: string;
   igUserId?: string;
 };
@@ -54,6 +58,8 @@ export type QueueItem = {
   rejectReason?: string;
   platforms: Platform[];
   publishResults?: PublishResult[];
+  /** YouTube visibility for this item. Unset = "public" (previous behaviour). */
+  youtubePrivacy?: YoutubePrivacy;
 };
 
 export type ConnectionsPublic = {
@@ -64,6 +70,13 @@ export type ConnectionsPublic = {
     liveConfigured: boolean;
   };
   instagram: {
+    status: ConnectionStatus;
+    accountLabel?: string;
+    connectedAt?: string;
+    liveConfigured: boolean;
+  };
+  /** Connected through the Meta (Instagram) login — no separate OAuth start. */
+  facebook?: {
     status: ConnectionStatus;
     accountLabel?: string;
     connectedAt?: string;

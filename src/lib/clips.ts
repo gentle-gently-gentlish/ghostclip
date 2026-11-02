@@ -33,6 +33,8 @@ export type Clip = {
   thumbnailText: string;
   youtube: PlatformPack;
   instagram: PlatformPack;
+  /** Optional Facebook copy; falls back to the Instagram pack. */
+  facebook?: PlatformPack;
 };
 
 export type ClipBatch = {

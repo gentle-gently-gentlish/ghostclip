@@ -8,7 +8,12 @@ import {
   toPublicQueueItem,
   upsertQueueItem,
 } from "@/lib/publish/store";
-import type { Platform, QueueItem } from "@/lib/publish/types";
+import {
+  PLATFORMS,
+  type Platform,
+  type QueueItem,
+  type YoutubePrivacy,
+} from "@/lib/publish/types";
 
 export async function GET() {
   await connection();
@@ -36,6 +41,7 @@ export async function POST(request: Request) {
     engine?: string;
     platforms?: Platform[];
     note?: string;
+    youtubePrivacy?: YoutubePrivacy;
   };
   try {
     meta = JSON.parse(metaRaw);
@@ -45,6 +51,14 @@ export async function POST(request: Request) {
 
   if (!meta.clip?.id) {
     return NextResponse.json({ error: "clip required" }, { status: 400 });
+  }
+
+  const badPlatform = meta.platforms?.find((p) => !PLATFORMS.includes(p));
+  if (badPlatform) {
+    return NextResponse.json({ error: `unknown platform: ${badPlatform}` }, { status: 400 });
+  }
+  if (meta.youtubePrivacy && !["public", "unlisted", "private"].includes(meta.youtubePrivacy)) {
+    return NextResponse.json({ error: "youtubePrivacy must be public, unlisted or private" }, { status: 400 });
   }
 
   const id = createQueueId();
@@ -67,6 +81,7 @@ export async function POST(request: Request) {
     platforms: meta.platforms?.length
       ? meta.platforms
       : ["youtube", "instagram"],
+    youtubePrivacy: meta.youtubePrivacy,
   };
 
   upsertQueueItem(item);

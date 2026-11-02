@@ -124,6 +124,8 @@ export async function publishYoutubeShort(opts: {
   clip: Clip;
   video: Buffer;
   mimeType?: string;
+  /** Default "public" keeps the previous behaviour; use "unlisted" for dry runs. */
+  privacyStatus?: "public" | "unlisted" | "private";
 }): Promise<PublishResult> {
   const at = new Date().toISOString();
   const conn = getConnections().youtube;
@@ -167,7 +169,7 @@ export async function publishYoutubeShort(opts: {
       tags: opts.clip.youtube.hashtags.map((h) => h.replace(/^#/, "")).slice(0, 15),
     },
     status: {
-      privacyStatus: "public",
+      privacyStatus: opts.privacyStatus ?? "public",
       selfDeclaredMadeForKids: false,
     },
   };
